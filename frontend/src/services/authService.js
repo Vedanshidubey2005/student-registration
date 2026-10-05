@@ -1,34 +1,27 @@
 import apiClient from "./apiClient";
 
-/**
- * All calls to the future Spring Boot auth endpoints live here.
- * Components must never call Axios directly.
- *
- * AUTH MODEL: the backend is expected to set an HttpOnly + Secure + SameSite cookie
- * (JWT or session id) on login. The browser stores and sends it; JavaScript never
- * sees it, so nothing sensitive is kept in localStorage/sessionStorage.
- * If the login response also contains a "token" field, it is intentionally ignored.
- */
-
 /** Maps the login/me response to the shape the app uses. Adapt here if the API differs. */
 function adaptUser(data) {
   const user = data?.user ?? data?.data?.user ?? null;
   return user && typeof user === "object" ? user : null;
 }
 
-/** Builds the multipart payload for registration. confirmPassword and CAPTCHA are NOT sent. */
+/** Builds the multipart payload for registration matched to RegistrationRequestDTO. */
 export function buildRegistrationFormData(values) {
   const formData = new FormData();
   formData.append("fullName", values.fullName);
   formData.append("email", values.email);
-  formData.append("mobileNumber", values.mobileNumber);
-  formData.append("dateOfBirth", values.dateOfBirth); // yyyy-mm-dd
+  formData.append("mobileNo", values.mobileNumber); // Mapped to DTO's mobileNo
+  formData.append("dob", values.dateOfBirth);       // Mapped to DTO's dob (yyyy-MM-dd)
   formData.append("gender", values.gender);
   formData.append("password", values.password);
+  formData.append("confirmPassword", values.confirmPassword); // Mapped to DTO's confirmPassword
   formData.append("pincode", values.pincode);
-  if (values.profilePhoto) formData.append("profilePhoto", values.profilePhoto);
-  // CAPTCHA: when a real provider is added, send its token as a header or a dedicated
-  // field (e.g. "captchaToken") and verify it server-side. Never send the typed demo answer.
+  
+  if (values.profilePhoto) {
+    formData.append("photo", values.profilePhoto);  // Mapped to DTO's photo (MultipartFile)
+  }
+
   return formData;
 }
 
@@ -45,8 +38,9 @@ export async function loginUser(payload) {
 }
 
 /** POST /api/auth/logout - the backend clears the auth cookie. */
-export async function logoutUser() {
-  await apiClient.post("/auth/logout", null, { skipAuthRedirect: true, silent: true });
+export async function logoutUser(email) {
+  // Java controller: @PostMapping("/logout") public ResponseEntity logoutUser(@RequestParam String email)
+  await apiClient.post(`/auth/logout?email=${encodeURIComponent(email || "")}`, null, { skipAuthRedirect: true, silent: true });
 }
 
 /** GET /api/auth/me - restores the session on page load (cookie-based). */

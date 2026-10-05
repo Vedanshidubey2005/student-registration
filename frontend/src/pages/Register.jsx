@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AuthLayout from "../components/auth/AuthLayout";
@@ -9,7 +9,7 @@ import ProfilePhotoUpload from "../components/auth/ProfilePhotoUpload";
 import Button from "../components/common/Button";
 import Input from "../components/common/Input";
 import { useToast } from "../hooks/useToast";
-import { buildRegistrationFormData, registerUser, resendVerificationEmail } from "../services/authService";
+import { buildRegistrationFormData, registerUser } from "../services/authService";
 import {
   GENDER_OPTIONS,
   calculateAge,
@@ -32,63 +32,19 @@ const defaultValues = {
   profilePhoto: null,
 };
 
-// Backend field names we know how to show inline
-const FORM_FIELDS = ["fullName", "email", "mobileNumber", "dateOfBirth", "gender", "password", "pincode", "profilePhoto"];
-const RESEND_COOLDOWN_SECONDS = 30;
-
-function VerificationNotice({ email }) {
-  const toast = useToast();
-  const [resending, setResending] = useState(false);
-  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
-
-  useEffect(() => {
-    if (cooldown <= 0) return undefined;
-    const timer = setTimeout(() => setCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
-
-  const handleResend = async () => {
-    if (resending || cooldown > 0) return;
-    setResending(true);
-    try {
-      await resendVerificationEmail(email);
-      toast.success("Verification email sent. Please check your inbox.");
-      setCooldown(RESEND_COOLDOWN_SECONDS);
-    } catch (err) {
-      if (!err.notified) toast.error(err.message);
-    } finally {
-      setResending(false);
-    }
-  };
-
-  return (
-    <AuthLayout
-      title="Registration successful!"
-      footer={<Link to="/login">Go to Login</Link>}
-    >
-      <div className="notice" role="status">
-        <p>We've sent a verification link to your email address.</p>
-        <p><strong>{email}</strong></p>
-        <p>Please verify your email before logging in.</p>
-      </div>
-      <p className="notice__resend-text">Didn't receive the email?</p>
-      <Button variant="secondary" onClick={handleResend} loading={resending} loadingText="Sending..." disabled={cooldown > 0}>
-        {cooldown > 0 ? `Resend verification email (${cooldown}s)` : "Resend verification email"}
-      </Button>
-    </AuthLayout>
-  );
-}
+// Backend field names mapping for server-side validation error handling
+const FORM_FIELDS = ["fullName", "email", "mobileNumber", "mobileNo", "dateOfBirth", "dob", "gender", "password", "confirmPassword", "pincode", "profilePhoto", "photo"];
 
 export default function Register() {
   const toast = useToast();
+  const navigate = useNavigate();
   const captchaRef = useRef(null);
   const submittingRef = useRef(false);
-  const [registeredEmail, setRegisteredEmail] = useState(null);
 
   const methods = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues,
-    mode: "onTouched", // validate on blur first, then on every change
+    mode: "onTouched",
     reValidateMode: "onChange",
   });
   const {
@@ -107,7 +63,7 @@ export default function Register() {
   const onInvalid = () => toast.warning("Please correct the highlighted fields.");
 
   const onSubmit = async (values) => {
-    if (submittingRef.current) return; // guards against double submission
+    if (submittingRef.current) return;
     if (!captchaRef.current?.verify()) return;
 
     submittingRef.current = true;
@@ -115,21 +71,21 @@ export default function Register() {
       await registerUser(buildRegistrationFormData(values));
       captchaRef.current?.refresh();
       reset(defaultValues);
-      setRegisteredEmail(values.email);
-      toast.success("Registration successful. Please verify your email.");
+      toast.success("Registration successful! Please login.");
+      navigate("/login");
     } catch (err) {
-      captchaRef.current?.refresh(); // challenges are single use
+      captchaRef.current?.refresh();
       const fieldEntries = Object.entries(err.fieldErrors || {}).filter(([field]) => FORM_FIELDS.includes(field));
       fieldEntries.forEach(([field, message], index) => {
-        setError(field, { type: "server", message }, { shouldFocus: index === 0 });
+        // Map backend field names back to form fields if needed
+        const formFieldName = field === "mobileNo" ? "mobileNumber" : field === "dob" ? "dateOfBirth" : field === "photo" ? "profilePhoto" : field;
+        setError(formFieldName, { type: "server", message }, { shouldFocus: index === 0 });
       });
-      if (!err.notified) toast.error(err.message);
+      if (!err.notified) toast.error(err.message || "Registration failed");
     } finally {
       submittingRef.current = false;
     }
   };
-
-  if (registeredEmail) return <VerificationNotice email={registeredEmail} />;
 
   return (
     <AuthLayout

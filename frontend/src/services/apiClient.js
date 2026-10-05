@@ -4,18 +4,17 @@ import { notify } from "./notifier";
 
 /**
  * Central Axios instance. The backend URL comes from .env (VITE_API_BASE_URL);
- * it is never hardcoded anywhere else.
+ * Defaults directly to your Spring Boot server on port 8080.
  *
  * Per-request flags (pass in the Axios config):
  *   skipAuthRedirect - a 401 is a normal answer (e.g. wrong password); not a session expiry
  *   silent           - never show a global toast for this request (used for session restore)
  */
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
   headers: { "Content-Type": "application/json" },
   timeout: 30000,
   // Required so the browser sends/accepts the HttpOnly session/JWT cookie set by Spring Boot.
-  // The backend must allow the frontend origin in CORS with allowCredentials(true).
   withCredentials: true,
   // Spring Security's CookieCsrfTokenRepository: echo the XSRF-TOKEN cookie in this header.
   xsrfCookieName: "XSRF-TOKEN",
@@ -34,8 +33,6 @@ apiClient.interceptors.request.use((config) => {
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     delete config.headers["Content-Type"];
   }
-  // BACKEND INTEGRATION: if you ever must fall back to a Bearer token (not recommended),
-  // attach it here. With HttpOnly cookies nothing is needed - the browser sends them.
   return config;
 });
 

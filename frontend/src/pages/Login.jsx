@@ -1,5 +1,5 @@
-import { useContext, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useRef, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext.jsx";
 import AuthLayout from "../components/auth/AuthLayout.jsx";
 import Captcha from "../components/auth/Captcha.jsx";
@@ -7,21 +7,21 @@ import { notify } from "../services/notifier";
 
 const initialValues = { email: "", password: "" };
 
-/**
- * BACKEND INTEGRATION POINTS
- *  - Calls login() from AuthContext, which POSTs /auth/login (see authService.js).
- *    The backend sets an HttpOnly cookie; we never touch a token here.
- *  - On success, AuthContext's `user` state updates, so ProtectedRoute lets
- *    the app through to /dashboard without this page needing to navigate itself
- *    (navigation can still be added explicitly if your routing expects it).
- */
 export default function Login() {
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
   const captchaRef = useRef(null);
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Agar context me user login detect ho gaya ho toh auto-redirect kare
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (field) => (e) => {
     setValues((prev) => ({ ...prev, [field]: e.target.value }));
@@ -30,7 +30,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (submittingRef.current) return; // guards against double submission
+    if (submittingRef.current) return;
     if (!captchaRef.current?.verify()) return;
 
     submittingRef.current = true;
@@ -41,8 +41,11 @@ export default function Login() {
         password: values.password,
       });
       notify.success("Signed in successfully.");
+
+      // Direct route navigation
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      captchaRef.current?.refresh(); // challenges are single use
+      captchaRef.current?.refresh();
       const fieldEntries = Object.entries(err.fieldErrors || {});
       if (fieldEntries.length) {
         const nextErrors = {};

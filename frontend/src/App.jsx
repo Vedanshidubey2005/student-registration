@@ -2,11 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ToastProvider } from "./components/common/Toast";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute, { PublicOnlyRoute } from "./routes/ProtectedRoute";
-// import Login from "./pages/Login";
+import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-// import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
