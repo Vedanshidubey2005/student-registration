@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Frontend connect karne ke liye CORS open
 public class AuthController {
 
     private final AuthService authService;
@@ -44,12 +43,19 @@ public class AuthController {
 
     // 3. LOGOUT ENDPOINT
     @PostMapping("/logout")
-    public ResponseEntity<AuthResponseDTO> logoutUser(@RequestParam String email) {
+    public ResponseEntity<AuthResponseDTO> logoutUser(@RequestParam(required = false) String email) {
         AuthResponseDTO response = authService.logout(email);
 
         if (!response.isSuccess()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
         return ResponseEntity.ok(response);
+    }
+
+    // 4. ME / CURRENT USER CHECK ENDPOINT (Frontend session restore ke liye)
+    @GetMapping("/me")
+    public ResponseEntity<AuthResponseDTO> getCurrentUser() {
+        // Filhal session validation ke liye dummy success status
+        return ResponseEntity.ok(new AuthResponseDTO(true, "Session active"));
     }
 }
