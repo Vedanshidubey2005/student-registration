@@ -13,7 +13,6 @@ permissions:
 
 jobs:
   build-and-test:
-    # Execute on your own Windows laptop
     runs-on: self-hosted
 
     steps:
@@ -50,8 +49,22 @@ jobs:
         shell: cmd
         run: npm run build
 
-      # Step 6: Run backend tests and build
+      # Step 6: Test and build Spring Boot backend
       - name: Test and build Spring Boot backend
         working-directory: CMS_AIIMS
         shell: cmd
         run: .\mvnw.cmd -B clean verify
+
+      # Step 7: Deploy frontend
+      - name: Deploy frontend
+        shell: cmd
+        run: |
+          if not exist C:\student-registration-deploy\frontend mkdir C:\student-registration-deploy\frontend
+          xcopy /E /I /Y frontend\dist C:\student-registration-deploy\frontend
+
+      # Step 8: Deploy backend JAR
+      - name: Deploy backend
+        shell: cmd
+        run: |
+          if not exist C:\student-registration-deploy\backend mkdir C:\student-registration-deploy\backend
+          copy /Y CMS_AIIMS\target\*.jar C:\student-registration-deploy\backend\
