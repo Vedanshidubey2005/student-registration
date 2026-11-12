@@ -1,0 +1,11 @@
+.dashboard { min-height: 100vh; display: flex; flex-direction: column; }
+.dashboard__bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.75rem clamp(1rem, 4vw, 2rem); background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.dashboard__brand { font-weight: 700; }
+.dashboard__main { flex: 1; display: grid; place-items: start center; padding: clamp(1.5rem, 6vw, 4rem) 1rem; }
+.dashboard__card { width: 100%; max-width: 640px; padding: clamp(1.25rem, 4vw, 2rem); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.dashboard__title { font-size: clamp(1.4rem, 4vw, 1.9rem); letter-spacing: -0.01em; }
+.dashboard__email { margin-top: 0.25rem; color: var(--muted); word-break: break-all; }
+.dashboard__note { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--line); color: var(--muted); }
