@@ -1,0 +1,59 @@
+
+name: Student Registration CI Pipeline
+
+# Run pipeline whenever code is pushed to main
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+
+    # Execute on your own Windows laptop
+    runs-on: self-hosted
+
+    steps:
+
+      # Step 1: Get project code from GitHub
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # Step 2: Configure Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Step 3: Configure Java 17
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: CMS_AIIMS/pom.xml
+
+      # Step 4: Install frontend dependencies
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Step 5: Build React frontend
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # Step 6: Run backend tests and build
+      - name: Test and build Spring Boot backend
+        working-directory: CMS_AIIMS
+        shell: powershell
+        run: .\mvnw.cmd -B clean verify
+
