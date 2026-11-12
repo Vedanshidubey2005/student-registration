@@ -43,17 +43,19 @@ jobs:
 
       # Step 4: Install frontend dependencies
       - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
+  working-directory: frontend
+  shell: cmd
+  run: npm ci
 
       # Step 5: Build React frontend
       - name: Build frontend
-        working-directory: frontend
-        run: npm run build
+  working-directory: frontend
+  shell: cmd
+  run: npm run build
 
       # Step 6: Run backend tests and build
       - name: Test and build Spring Boot backend
-        working-directory: CMS_AIIMS
-        shell: powershell
-        run: .\mvnw.cmd -B clean verify
+  working-directory: CMS_AIIMS
+  shell: cmd
+  run: .\mvnw.cmd -B clean verify
 
