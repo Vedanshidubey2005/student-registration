@@ -37,32 +37,28 @@ jobs:
           cache: maven
           cache-dependency-path: CMS_AIIMS/pom.xml
 
-      # Step 4: Install frontend dependencies
+    
       - name: Install frontend dependencies
         working-directory: frontend
         shell: cmd
         run: npm ci
 
-      # Step 5: Build React frontend
       - name: Build frontend
         working-directory: frontend
         shell: cmd
         run: npm run build
 
-      # Step 6: Test and build Spring Boot backend
       - name: Test and build Spring Boot backend
         working-directory: CMS_AIIMS
         shell: cmd
         run: .\mvnw.cmd -B clean verify
 
-      # Step 7: Deploy frontend
       - name: Deploy frontend
         shell: cmd
         run: |
           if not exist C:\student-registration-deploy\frontend mkdir C:\student-registration-deploy\frontend
           xcopy /E /I /Y frontend\dist C:\student-registration-deploy\frontend
 
-      # Step 8: Deploy backend JAR
       - name: Deploy backend
         shell: cmd
         run: |
