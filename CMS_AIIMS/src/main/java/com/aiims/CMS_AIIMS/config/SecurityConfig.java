@@ -1,3 +1,4 @@
+
 package com.aiims.CMS_AIIMS.config;
 
 import org.springframework.context.annotation.Bean;
@@ -30,19 +31,40 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 );
+
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-XSRF-TOKEN", "Accept"));
+
+        // Allow the deployed frontend and existing development origins.
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4173",
+                "http://localhost:5173",
+                "http://localhost:3000"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
+
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-XSRF-TOKEN",
+                "Accept"
+        ));
+
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

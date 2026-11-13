@@ -11,7 +11,7 @@ export default function AuthLayout({ title, subtitle, wide = false, footer, chil
       <div className={`auth-shell ${wide ? "auth-shell--wide" : ""}`}>
         <div className="auth-brand">
           <span className="auth-brand__mark"><ShieldIcon /></span>
-          <span className="auth-brand__name">Account Access</span>
+          <span className="auth-brand__name">Registration form</span>
         </div>
         <section className="auth-card" aria-labelledby="auth-title">
           <header className="auth-card__header">
