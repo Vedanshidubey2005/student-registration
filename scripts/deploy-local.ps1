@@ -1,10 +1,15 @@
 
 $ErrorActionPreference = "Stop"
 
+# Get the project root (parent of the scripts folder)
+$projectRoot = Split-Path -Parent $PSScriptRoot
+
 # Deployment locations
 $deployRoot = "C:\student-registration-deploy"
-$frontendSource = Join-Path $PSScriptRoot "frontend\dist"
-$backendSource = Join-Path $PSScriptRoot "CMS_AIIMS\target\CMS_AIIMS-0.0.1-SNAPSHOT.jar"
+
+# Build artifact locations
+$frontendSource = Join-Path $projectRoot "frontend\dist"
+$backendSource = Join-Path $projectRoot "CMS_AIIMS\target\CMS_AIIMS-0.0.1-SNAPSHOT.jar"
 
 $frontendDestination = Join-Path $deployRoot "frontend"
 $backendDestination = Join-Path $deployRoot "backend"
